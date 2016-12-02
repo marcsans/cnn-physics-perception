@@ -1,0 +1,10 @@
+*.h5
+*.jpg
+*.pdf
+*.pyc
+*.aux
+*.log
+*.synctex.gz
+.idea/
+OpenCV/
+opencv.sh
