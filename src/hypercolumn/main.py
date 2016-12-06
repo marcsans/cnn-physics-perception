@@ -10,22 +10,8 @@ from keras import backend as K
 from keras.optimizers import SGD
 from VGG_16 import VGG_16
 
-def get_activations(model, layer_idx, X_batch):
-    get_activations = K.function([model.layers[0].input, K.learning_phase()], [model.layers[layer_idx].output,])
-    activations = get_activations([X_batch,0])
-    return activations
-
-# extract hypercolumn
-def extract_hypercolumn(model, layer_indexes, instance):
-    layers = [model.layers[li].output for li in layer_indexes]
-    get_feature = theano.function([model.layers[0].input], layers,allow_input_downcast=False)
-    feature_maps = get_feature(instance)
-    hypercolumns = []
-    for convmap in feature_maps:
-        for fmap in convmap[0]:
-            upscaled = sp.misc.imresize(fmap, size=(224, 224), mode="F", interp='bilinear')
-            hypercolumns.append(upscaled)
-    return np.asarray(hypercolumns)
+from utils import extract_hypercolumn
+from utils import get_activations
 
 model = VGG_16('vgg16_weights.h5')
 sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
@@ -71,3 +57,7 @@ ave = np.average(hc.transpose(1, 2, 0), axis=2)
 plt.imshow(ave)
 plt.title('average hypercolumn extracted from layer 22 and 29')
 plt.show()
+
+
+
+
