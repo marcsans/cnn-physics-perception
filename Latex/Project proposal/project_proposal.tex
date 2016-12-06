@@ -1,4 +1,18 @@
-\documentclass[]{article}
+\documentclass[11pt, oneside]{amsart}
+\usepackage{geometry}
+\geometry{letterpaper}
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{etex,mathtools}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{array}
+\usepackage{hyperref}
 
 %opening
 \title{Project Proposal : Perceiving Physics by Integrating a Physics Engine with Deep Learning}
@@ -8,6 +22,39 @@
 
 \maketitle
 
-\section{Plan}
+We intend to follow the points that are in the project proposal "Perceiving physics".
+
+\begin{enumerate}
+  \item \textbf{Physical system}.
+
+    We will work with a double pendulum with bouncy walls as proposed in the point 5.
+  \item \textbf{Simuator}.
+
+    We will write a simple double pendulum motion simulator in python.
+  \item \textbf{Video}.
+
+    We will record a video of such a double pendulum with bouncy wall
+  \item \textbf{Hypercolumns}.
+
+    We have begun to work on the Hypercolumns extraction problem.
+    We have found a begin of python code that does hypercolumn extracting on \href{http://blog.christianperone.com/2016/01/convolutional-hypercolumns-in-python/}{\textbf{this page}}.
+    We had to modify the code in order to get it working on our computers.
+    We are currently testing it on a pendulum video that we downloaded to see which layer is responsive to the mass.
+    Once we have the correct hypercolumn features, we will compute the mass position.
+  \item \textbf{Inference}.
+
+    The reason why we haven't chose the simple pendulum is that we can't infer the mass of the ball.
+    Indeed, if we neglet the friction effects, the equations of pendulum motion do not depend on the mass.
+    The rebound equation do not depend on the mass either.
+    So we can't infer the mass of the pendulum.
+    We can infer :
+    \begin{itemize}
+      \item the length, but we can also deduce it from the frames directly.
+      \item the gravity, but this value does not depend on the pendulum.
+      \item the resitution coefficient.
+    \end{itemize}
+    Thus we have chosen to work on a double pendulum.
+    On that system, we will try to infer the mass of one of the balls.
+\end{enumerate}
 
 \end{document}
