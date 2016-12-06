@@ -1,12 +1,9 @@
 # coding: utf8
 from matplotlib import pyplot as plt
 
-import theano
 import cv2
 import numpy as np
-import scipy as sp
 
-from keras import backend as K
 from keras.optimizers import SGD
 from VGG_16 import VGG_16
 

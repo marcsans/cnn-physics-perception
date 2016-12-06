@@ -9,6 +9,7 @@
 OpenCV/
 opencv.sh
 *.mp4
+*.avi
 
 *.swp
 *.swo
