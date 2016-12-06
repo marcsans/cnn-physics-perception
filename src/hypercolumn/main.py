@@ -44,11 +44,15 @@ plt.plot(out.ravel())
 
 # get features from the third layer
 feat = get_activations(model, 3, im)
+plt.title('features from the third layer')
 plt.imshow(feat[0][0][2])
+plt.show()
 
 # get features from the 15th layer
+plt.title('features from the 15th layer')
 feat = get_activations(model, 15, im)
 plt.imshow(feat[0][0][13])
+plt.show()
 
 # layers to extract
 layers_extract = [3, 8]
@@ -57,9 +61,13 @@ hc = extract_hypercolumn(model, layers_extract, im)
 # average hc values
 ave = np.average(hc.transpose(1, 2, 0), axis=2)
 plt.imshow(ave)
+plt.title('average hypercolumn extracted from layer 3 and 8')
+plt.show()
 
 #idem
 layers_extract = [22, 29]
 hc = extract_hypercolumn(model, layers_extract, im)
 ave = np.average(hc.transpose(1, 2, 0), axis=2)
 plt.imshow(ave)
+plt.title('average hypercolumn extracted from layer 22 and 29')
+plt.show()
