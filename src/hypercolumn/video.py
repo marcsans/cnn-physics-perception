@@ -17,15 +17,15 @@ model.compile(optimizer=sgd, loss='categorical_crossentropy')
 
 # Define the codec and create VideoWriter object
 fourcc = cv2.cv.CV_FOURCC(*'XVID')
-out = cv2.VideoWriter('output.avi',fourcc, 20.0, (224,224))
+out = cv2.VideoWriter('../../thresholded.avi',fourcc, 20.0, (224,224), 0)
 
 # Capture the video
 cap = cv2.VideoCapture('../../pendule.mp4')
+f = 0
 while (cap.isOpened()):
     ret, frame = cap.read()
     if frame is None:
         break
-    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # redimensionnement de la frame pour qu' elle ait la bonne taille pour le réseau 224x 224
     frame = cv2.resize(frame, (224, 224))
     im = frame.transpose((2, 0, 1))
@@ -38,8 +38,10 @@ while (cap.isOpened()):
     feat = get_activations(model, 15, im)
     m = np.matrix((feat[0][0][7]>1000)*255.0, dtype=float)
     out.write(np.uint8(m))
-    # plt.imshow(feat[0][0][7]>1000)
-    # plt.show()
+    f+=1
+    print 'frame '+str(f)
+    if f>20:
+        break
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
