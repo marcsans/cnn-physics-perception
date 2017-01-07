@@ -45,9 +45,19 @@ def learn_length_from_three_angle(th_0, th_1, th_2, l_init=1.0):
 
         # update l
         l = l - delta * gradient
-        print l
         continue_condition = (iter < n_iteration_max and abs(gradient) > diff)
 
-    print 'n_iteration : ', iter
-
     return l
+
+def learn_length_from_sequence(angle_sequence):
+    l = 0
+    N = len(angle_sequence) - 2
+
+    for i  in range(0, N):
+        th_0 = angle_sequence[i]
+        th_1 = angle_sequence[i+1]
+        th_2 = angle_sequence[i+2]
+
+        l += learn_length_from_three_angle(th_0, th_1, th_2)
+
+    return l / N
