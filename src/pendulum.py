@@ -14,7 +14,7 @@ FPS = 20
 dt = 1.0 / FPS
 
 ### SIMPLE PENDULUM ###
-def simple_pendulum_derivatives(state, t, m, g, l):
+def simple_pendulum_derivatives(state, t, l, g):
     """
         state : [theta (angle), w (angular velocity) ]
         general equation
@@ -25,18 +25,19 @@ def simple_pendulum_derivatives(state, t, m, g, l):
 
     return deriv
 
-def integrate_simple_pendulum(th, w, n_step):
+def integrate_simple_pendulum(th_0, th_1, n_step, l=L1, g=G):
+    w = (th_1 - th_0) / dt
     t = np.linspace(dt, n_step * dt, n_step)
-    initial_state = np.array([th, w])
-    y = integrate.odeint(simple_pendulum_derivatives, initial_state, t, args = (M1, G, L1))
+    initial_state = np.array([th_0, w])
+    y = integrate.odeint(simple_pendulum_derivatives, initial_state, t, args = (l, g))
 
-    x1 = L1 * sin(y[:, 0])
-    y1 = -L1 * cos(y[:, 0])
+    x1 = l * sin(y[:, 0])
+    y1 = -l * cos(y[:, 0])
 
     return (y, x1, y1)
 
 ### DOUBLE PENDULUM
-def double_pendulum_derivatives(state, t):
+def double_pendulum_derivatives(state, t, m1, m2, l1, l2, g):
     """
         the state variable contains the angles and angular veolcities [theta1, w1, theta2, w2]
         function returns the derivative of the state which is angular velocities and accelerations [w1, a1, w2, a2]
@@ -53,23 +54,23 @@ def double_pendulum_derivatives(state, t):
     w1 = state[1]
     theta2 = state[2]
     w2 = state[3]
-    MT = (M1 + M2)
+    MT = (m1 + m2)
     delta_theta = theta2 - theta1
-    denominator1 = MT * L1 - M2 * L1 * cos(delta_theta) * cos(delta_theta)
-    denominator2 = (L2 / L1) * denominator1
+    denominator1 = MT * l1 - m2 * l1 * cos(delta_theta) * cos(delta_theta)
+    denominator2 = (l2 / l1) * denominator1
 
     # angular accelerations 1
-    state_derivatives[1] = (M2 * L1 * w1 * w1 * sin(delta_theta) * cos(delta_theta) +
-            M2 * G*sin(theta2) * cos(delta_theta) +
-            M2 * L2 * w2 * w2 * sin(delta_theta) -
-            MT * G*sin(theta1))
+    state_derivatives[1] = (m2 * l1 * w1 * w1 * sin(delta_theta) * cos(delta_theta) +
+            m2 * g*sin(theta2) * cos(delta_theta) +
+            m2 * l2 * w2 * w2 * sin(delta_theta) -
+            MT * g*sin(theta1))
     state_derivatives[1] = state_derivatives[1] / denominator1
 
     # angular accelerations 2
-    state_derivatives[3] = (-M2 * L2 * w2 * w2 * sin(delta_theta) * cos(delta_theta) +
-            MT * G * sin(theta1) * cos(delta_theta) -
-            MT * L1 * w1 * w1 * sin(delta_theta) -
-            MT * G * sin(theta2))
+    state_derivatives[3] = (-m2 * l2 * w2 * w2 * sin(delta_theta) * cos(delta_theta) +
+            MT * g * sin(theta1) * cos(delta_theta) -
+            MT * l1 * w1 * w1 * sin(delta_theta) -
+            MT * g * sin(theta2))
     state_derivatives[3] = state_derivatives[3] / denominator2
 
     return state_derivatives
@@ -83,7 +84,7 @@ def integrate_double_pendulum(th1_0, th1_1, th2_0, th2_1, n_step=1):
     w2 = (th2_1 - th2_0) / dt
 
     initial_state = [th1_1, w1, th2_1, w2]
-    y = integrate.odeint(double_pendulum_derivatives, initial_state, t)
+    y = integrate.odeint(double_pendulum_derivatives, initial_state, t, args = (M1, M2, L1, L2, G))
 
     x1 = L1 * sin(y[:, 0])
     y1 = -L1 * cos(y[:, 0])
@@ -94,12 +95,12 @@ def integrate_double_pendulum(th1_0, th1_1, th2_0, th2_1, n_step=1):
     return (y, x1, y1, x2, y2)
 
 ### EXAMPLES ###
-def run_simple_pendulum_example():
-    th = -np.pi / 4
-    w = np.pi / 12
+def run_simple_pendulum_example(l=L1):
+    th_0 = -np.pi / 4
+    th_1 = th_0
     n_step = 200
 
-    (y, x1, y1) = integrate_simple_pendulum(th, w, n_step)
+    (y, x1, y1) = integrate_simple_pendulum(th_0, th_1, n_step, l=l)
 
     animate_pendulum(y, x1, y1)
 
