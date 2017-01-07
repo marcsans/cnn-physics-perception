@@ -5,22 +5,29 @@ import scipy.integrate as integrate
 import matplotlib.animation as animation
 import pendulum
 
-FPS = 25
-dt = 1.0 / FPS
+def plot_F(th_0, th_1, th_2, l):
+    n_points = 1000
+    l = np.linspace(l-1, l+1 , n_points)
 
-def learn_length_from_pendulum_angle_sequence(angle_sequence):
-    th_0 = angle_sequence[0]
-    th_1 = angle_sequence[1]
+    F = np.zeros(n_points)
 
+    for i, _l in enumerate(l):
+        theta_l = pendulum.perform_one_step_integration_for_simple_pendulum(th_0, th_1, l=_l)
+        F[i] = (theta_l - th_2)**2
+
+    plt.figure(1)
+    plt.plot(l, F)
+    plt.show()
+
+def learn_length_from_three_angle(th_0, th_1, th_2, l_init=1.0):
+    # gradient descent parameters
     n_iteration_max = 10000
-
-    # gradient algo parameters
-    diff = 10**(-4)
+    diff = 10**(-8)
     epsilon = 10**(-6) # step to compute numerical gradient
-    delta = 0.001 # gradient descent step
+    delta = 1 # gradient descent step
 
     # initialize length
-    l = 1.0
+    l = l_init
     iter = 0
 
     continue_condition = True
@@ -29,19 +36,18 @@ def learn_length_from_pendulum_angle_sequence(angle_sequence):
 
         l_eps = l + epsilon
 
-        (states_l, x1, x2) = pendulum.integrate_simple_pendulum(th_0, th_1, 3, l=l)
-        (states_l_eps, x1_eps, x2_eps) = pendulum.integrate_simple_pendulum(th_0, th_1, 3, l=l_eps)
+        theta_l_eps  = pendulum.perform_one_step_integration_for_simple_pendulum(th_0, th_1, l=l_eps)
+        theta_l = pendulum.perform_one_step_integration_for_simple_pendulum(th_0, th_1, l=l)
 
-        theta = angle_sequence[2]
-        theta_l = states_l[2, 0]
-        theta_l_eps = states_l_eps[2, 0]
-        G_theta_l = (theta_l_eps - theta_l) / epsilon
+        d_theta_l = (theta_l_eps - theta_l) / epsilon
 
-        gradient = 2 * G_theta_l * (theta_l - theta)
+        gradient = 2 * d_theta_l * (theta_l - th_2)
 
         # update l
         l = l - delta * gradient
         print l
         continue_condition = (iter < n_iteration_max and abs(gradient) > diff)
+
+    print 'n_iteration : ', iter
 
     return l

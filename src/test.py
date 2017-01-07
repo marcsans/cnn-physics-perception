@@ -7,17 +7,16 @@ pendulum.run_simple_pendulum_example(l=1.0)
 pendulum.run_simple_pendulum_example(l=2.0)
 
 print 'test double pendulum animation'
-#pendulum.run_double_pendulum_example_with_animation()
+pendulum.run_double_pendulum_example_with_animation()
 
 print 'test parameter learning'
 l = 1.1
 th_0 = np.pi / 4
 th_1 = th_0
-n_step = 50
+th_2 = pendulum.perform_one_step_integration_for_simple_pendulum(th_0, th_1, l=l)
 
-(y, x1, y1) = pendulum.integrate_simple_pendulum(th_0, th_1, n_step, l=l)
-angle_sequence = y[:, 0]
+learn_pendulum_parameter.plot_F(th_0, th_1, th_2, l)
 
-l_learn = learn_pendulum_parameter.learn_length_from_pendulum_angle_sequence(angle_sequence)
+l_learn = learn_pendulum_parameter.learn_length_from_three_angle(th_0, th_1, th_2, l_init=1.0)
 print 'theoritical value ', l
 print 'learnt value value ', l_learn

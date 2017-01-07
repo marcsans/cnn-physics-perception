@@ -36,6 +36,9 @@ def integrate_simple_pendulum(th_0, th_1, n_step, l=L1, g=G):
 
     return (y, x1, y1)
 
+def perform_one_step_integration_for_simple_pendulum(th_0, th_1, l=L1, g=G):
+    return th_1 - dt**2 * (g / l) * sin(th_0)
+
 ### DOUBLE PENDULUM
 def double_pendulum_derivatives(state, t, m1, m2, l1, l2, g):
     """
