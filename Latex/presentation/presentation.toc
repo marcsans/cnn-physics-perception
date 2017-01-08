@@ -1,0 +1,4 @@
+\beamer@endinputifotherversion {3.36pt}
+\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
+\beamer@sectionintoc {2}{From video to angle sequence}{6}{0}{2}
+\beamer@sectionintoc {3}{From angle sequence to pendulum length}{10}{0}{3}
