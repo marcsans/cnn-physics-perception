@@ -61,6 +61,7 @@ def learn_length_from_three_angle(th_0, th_1, th_2, l_init=1.0):
     return l
 
 def learn_length_from_sequence(angle_sequence):
+    lengths = []
     l = 0
     N = len(angle_sequence) - 2
 
@@ -69,6 +70,9 @@ def learn_length_from_sequence(angle_sequence):
         th_1 = angle_sequence[i+1]
         th_2 = angle_sequence[i+2]
 
-        l += learn_length_from_three_angle(th_0, th_1, th_2)
+        lengths.append(learn_length_from_three_angle(th_0, th_1, th_2))
+    plt.figure(1)
+    plt.hist(lengths, bins=50)
+    plt.show()
 
-    return l / N
+    return (sum(lengths) / N, lengths)

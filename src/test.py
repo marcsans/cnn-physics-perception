@@ -28,5 +28,5 @@ plt.show()
 
 
 
-l_pend = learn_pendulum_parameter.learn_length_from_sequence(angles)
+(l_pend, length) = learn_pendulum_parameter.learn_length_from_sequence(angles)
 print 'pendulum length', l_pend
