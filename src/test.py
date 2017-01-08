@@ -22,7 +22,7 @@ l_learn = learn_pendulum_parameter.learn_length_from_three_angle(th_0, th_1, th_
 print 'theoritical value ', l
 print 'learnt value value ', l_learn
 
-angles = np.loadtxt('hypercolumn/angle_sequence.npy')
+angles = np.loadtxt('data/angle_sequence.txt')
 plt.plot(angles)
 plt.show()
 
