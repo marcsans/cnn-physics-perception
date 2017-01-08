@@ -1,6 +1,7 @@
 import pendulum
 import numpy as np
 import learn_pendulum_parameter
+import matplotlib.pyplot as plt
 
 print 'test simple pendulum'
 #pendulum.run_simple_pendulum_example(l=1.0)
@@ -22,6 +23,10 @@ print 'theoritical value ', l
 print 'learnt value value ', l_learn
 
 angles = np.loadtxt('hypercolumn/angle_sequence.npy')
+plt.plot(angles)
+plt.show()
+
+
 
 l_pend = learn_pendulum_parameter.learn_length_from_sequence(angles)
 print 'pendulum length', l_pend

@@ -10,7 +10,7 @@ L2 = 1.0  # length of pendulum 2 in m
 M1 = 1.0  # mass of pendulum 1 in kg
 M2 = 1.0  # mass of pendulum 2 in kg
 
-FPS = 20
+FPS = 31
 dt = 1.0 / FPS
 
 ### SIMPLE PENDULUM ###
