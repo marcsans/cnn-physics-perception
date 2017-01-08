@@ -13,3 +13,4 @@ opencv.sh
 
 *.swp
 *.swo
+*.DS_Store
