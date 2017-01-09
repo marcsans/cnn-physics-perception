@@ -14,6 +14,10 @@ from VGG_16 import VGG_16
 from utils import extract_hypercolumn
 from utils import get_activations
 
+#interseting_layers = [6, 8, 9, 13, 19, 28, 122, 124, 133, 152, 233]
+interseting_layers = [7]
+
+
 def propagate_cluster(clusters, m, i, j, w, h, threshold):
     to_propagate = [(i,j)]
     to_return = [(i,j)]
@@ -66,7 +70,8 @@ def find_center_ball(m, threshold):
     surface_ratio = 1.0 / num_pixels
     cx *= surface_ratio
     cy *= surface_ratio
-    return cx, cy
+
+    return np.array([cx, cy])
 
 def compute_radius(centers):
     n_centers = len(centers)
@@ -153,7 +158,16 @@ def find_attach_point(radius):
 
     return attach_point
 
-def write_activation_video_2(input_video='../pendule.mp4', input_video_shape=[852, 480], output_video='../threshold_2.mp4'):
+def plot_all_features(feat):
+    shape = feat.shape
+    for i in range(shape[2]):
+        feat_i = feat[0, 0, i]
+        figure_name = 'i = ' + str(i)
+        plt.figure(figure_name)
+        plt.imshow(feat_i)
+        plt.show()
+
+def write_activations_from_video(input_video='../pendule.mp4', input_video_shape=[852, 480], layers=interseting_layers):
     image_size = input_video_shape[0] * input_video_shape[1] * 3
 
     # Get neural network
@@ -161,8 +175,29 @@ def write_activation_video_2(input_video='../pendule.mp4', input_video_shape=[85
     sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(optimizer=sgd, loss='categorical_crossentropy')
 
+    get_n_frame_command = [
+        'ffprobe',
+        '-v', 'error', #This hides "info" output (version info, etc) which makes parsing easier
+        '-count_frames', # Count the number of frames per stream and report it in the corresponding stream section
+        '-select_streams', 'v:0', # Select only the video stream
+        '-show_entries', 'stream=nb_read_frames', # Show only the number of read frames
+        '-of', 'default=nokey=1:noprint_wrappers=1', #Set output format (aka the "writer") to default, do not print the key of each field (nokey=1), and do not print the section header and footer (noprint_wrappers=1)
+        input_video
+    ]
+
+    get_n_frame_pipe = sp.Popen(get_n_frame_command, stdout=sp.PIPE)
+    n_frames = int(get_n_frame_pipe.stdout.readline())
+
+    print 'n frames ', n_frames
+
+    get_n_frame_pipe.stdout.close()
+    get_n_frame_pipe.wait()
+
+    del get_n_frame_pipe
+
     # Set up formatting for the movie files
     FFMPEG_BIN = 'ffmpeg'
+
     read_video_command = [
         FFMPEG_BIN,
         '-i', input_video, # input video
@@ -170,61 +205,34 @@ def write_activation_video_2(input_video='../pendule.mp4', input_video_shape=[85
         '-pix_fmt', 'rgb24', '-vcodec', 'rawvideo', # raw RGB output
         '-' # the pipe is usd by another programm
     ]
-    write_video_command = [
-        FFMPEG_BIN,
-        '-y', # (optional) overwrite output file if it exists
-        '-f', 'rawvideo', '-vcodec','rawvideo', # raw video format
-        '-s', '56x56', # size of one frame
-        '-pix_fmt', 'rgb24', # RGB
-        '-r', '24', # frames per second
-        '-i', '-', # The imput comes from a pipe
-        '-an', # Tells FFMPEG not to expect any audio
-        '-vcodec', 'mpeg4',
-        output_video
-    ]
 
+    activations = np.zeros((len(layers), n_frames, 56, 56))
     # open the read and write pipes
     read_video_pipe = sp.Popen(read_video_command, stdout=sp.PIPE, bufsize=10**9)
-    write_video_pipe = sp.Popen(write_video_command, stdin=sp.PIPE)
 
-    frame_number = 0
     continue_condition = True
-    while continue_condition:
-        try:
-            frame_number += 1
+    for i in range(n_frames):
+        raw_image = read_video_pipe.stdout.read(image_size)
+        image =  np.fromstring(raw_image, dtype='uint8')
+        image = image.reshape((input_video_shape[1], input_video_shape[0], 3))
 
-            raw_image = read_video_pipe.stdout.read(image_size)
-            image =  np.fromstring(raw_image, dtype='uint8')
-            image = image.reshape((input_video_shape[1], input_video_shape[0], 3))
+        # image to feed into the CNN
+        im_CNN = imresize(image, (224, 224, 3))
+        im_CNN = im_CNN.transpose((2, 0, 1))
+        im_CNN = np.expand_dims(im_CNN, axis=0)
 
-            # image to feed into the CNN
-            im_CNN = imresize(image, (224, 224, 3))
-            im_CNN = im_CNN.transpose((2, 0, 1))
-            im_CNN = np.expand_dims(im_CNN, axis=0)
+        # feed the image into VGG
+        model.predict(im_CNN)
 
-            # feed the image into VGG
-            model.predict(im_CNN)
+        threshold = 1000
 
-            # get features from the third layer
-            threshold = 1000
-            feat = get_activations(model, 15, im_CNN)
-            print 'feat shape ', len(feat), ' ', len(feat[0]), ' ', len(feat[0][0]), ' ', len(feat[0][0][0])
+        feat = np.array(get_activations(model, 15, im_CNN))
 
-            activations = np.matrix((feat[0][0][7]), dtype=float)
-            activation_thresh = 255 * (activations > threshold)
+        for j, layer in enumerate(layers):
+            activation = feat[0, 0, layer]
+            activations[j, i] = 255 * (activation > threshold)
 
-            activation_image = np.zeros(activations.shape + (3, ))
-            activation_image[:, :, 0] = activation_thresh
-            activation_image[:, :, 1] = activation_thresh
-            activation_image[:, :, 2] = activation_thresh
-
-            activation_image = activation_image.astype('uint8')
-            write_video_pipe.stdin.write(activation_image.tostring())
-
-            print 'frame ', frame_number, ' done'
-        except Exception:
-            print 'stop'
-            continue_condition = False
+        print 'frame ', i + 1, ' done'
 
 
     read_video_pipe.stdout.flush()
@@ -233,10 +241,27 @@ def write_activation_video_2(input_video='../pendule.mp4', input_video_shape=[85
 
     del read_video_pipe
 
-    write_video_pipe.stdin.close()
-    write_video_pipe.wait()
+    np.save('data/activations.npy', activations)
 
-    del write_video_pipe
+def write_activations_video():
+    activations = np.load('data/activations.npy')
+    n_frame = activations.shape[1]
+
+    for i_layer, layer in enumerate(interseting_layers):
+        print 'writing video for layer ', layer
+        # Set up formatting for the movie files
+        FFMpegWriter = animation.writers['ffmpeg']
+        metadata = dict(title='Pendulum activation layer ' + str(layer), artist='Thiry, Sanselme')
+        writer = FFMpegWriter(fps=15, metadata=metadata)
+
+        output_video = '../activation_videos/' + str(layer) + 'threshold.mp4'
+        fig = plt.figure()
+        with writer.saving(fig, output_video, 100):
+            for i_frame in range(n_frame):
+                print 'frame ', i_frame
+                im = activations[i_layer, i_frame]
+                plt.imshow(im)
+                writer.grab_frame()
 
 def write_activation_video(adress_video_input='../pendule.mp4', adress_video_output='../threshold.mp4'):
     # Get neural network
@@ -293,40 +318,27 @@ def write_activation_video(adress_video_input='../pendule.mp4', adress_video_out
     centers = np.array(centers)
     np.savetxt('data/centers.txt', centers)
 
-def determine_pendulum_centers_from_activation_video(activation_video_url='../../threshold.mp4'):
-    """
-        NOT WORKING YET
-    """
-    cap = cv2.VideoCapture(activation_video_url)
-    f = 0
-    centers = []
+def determine_pendulum_centers():
+    activations = np.load('data/activations.npy')
 
-    while (cap.isOpened()):
-        ret, frame = cap.read()
-        f += 1
-        print 'frame ' + str(f) + '...'
-        if frame is None:
-            break
-        # sum values of RGB channels to get a 2D array
-        frame = np.sum(frame, axis=2)
+    activation_layer_7 = activations[0]
+    n_frames = activation_layer_7.shape[0]
 
+    centers = np.zeros((n_frames, 2))
+
+    for i in range(n_frames):
+        frame = activation_layer_7[i]
         threshold = 0.5 * (np.max(frame) + np.min(frame))
 
-        centers.append(find_center_ball(frame, threshold))
+        centers[i] = find_center_ball(frame, threshold)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        print 'done'
-    cap.release()
+    np.savetxt('data/centers_layer_7.txt', centers)
 
-    cv2.destroyAllWindows()
-
-    centers = np.array(centers)
-    np.savetxt('data/centers2.txt', centers)
-
-#write_activation_video()
-write_activation_video_2()
+write_activations_from_video()
+write_activations_video()
 #determine_pendulum_centers_from_activation_video()
+determine_pendulum_centers()
+
 centers = np.loadtxt('data/centers.txt')
 centers[:, 1] *= 852.0 / 480
 radius = compute_radius(centers)
