@@ -4,8 +4,10 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 import cv2
 import numpy as np
+import subprocess as sp
 from keras.optimizers import SGD
 from numpy.linalg import norm
+from scipy.misc import imresize
 
 #scripts
 from VGG_16 import VGG_16
@@ -151,6 +153,91 @@ def find_attach_point(radius):
 
     return attach_point
 
+def write_activation_video_2(input_video='../pendule.mp4', input_video_shape=[852, 480], output_video='../threshold_2.mp4'):
+    image_size = input_video_shape[0] * input_video_shape[1] * 3
+
+    # Get neural network
+    model = VGG_16('data/vgg16_weights.h5')
+    sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(optimizer=sgd, loss='categorical_crossentropy')
+
+    # Set up formatting for the movie files
+    FFMPEG_BIN = 'ffmpeg'
+    read_video_command = [
+        FFMPEG_BIN,
+        '-i', input_video, # input video
+        '-f', 'image2pipe', #use a pipe
+        '-pix_fmt', 'rgb24', '-vcodec', 'rawvideo', # raw RGB output
+        '-' # the pipe is usd by another programm
+    ]
+    write_video_command = [
+        FFMPEG_BIN,
+        '-y', # (optional) overwrite output file if it exists
+        '-f', 'rawvideo', '-vcodec','rawvideo', # raw video format
+        '-s', '56x56', # size of one frame
+        '-pix_fmt', 'rgb24', # RGB
+        '-r', '24', # frames per second
+        '-i', '-', # The imput comes from a pipe
+        '-an', # Tells FFMPEG not to expect any audio
+        '-vcodec', 'mpeg4',
+        output_video
+    ]
+
+    # open the read and write pipes
+    read_video_pipe = sp.Popen(read_video_command, stdout=sp.PIPE, bufsize=10**9)
+    write_video_pipe = sp.Popen(write_video_command, stdin=sp.PIPE)
+
+    frame_number = 0
+    continue_condition = True
+    while continue_condition:
+        try:
+            frame_number += 1
+
+            raw_image = read_video_pipe.stdout.read(image_size)
+            image =  np.fromstring(raw_image, dtype='uint8')
+            image = image.reshape((input_video_shape[1], input_video_shape[0], 3))
+
+            # image to feed into the CNN
+            im_CNN = imresize(image, (224, 224, 3))
+            im_CNN = im_CNN.transpose((2, 0, 1))
+            im_CNN = np.expand_dims(im_CNN, axis=0)
+
+            # feed the image into VGG
+            model.predict(im_CNN)
+
+            # get features from the third layer
+            threshold = 1000
+            feat = get_activations(model, 15, im_CNN)
+            print 'feat shape ', len(feat), ' ', len(feat[0]), ' ', len(feat[0][0]), ' ', len(feat[0][0][0])
+
+            activations = np.matrix((feat[0][0][7]), dtype=float)
+            activation_thresh = 255 * (activations > threshold)
+
+            activation_image = np.zeros(activations.shape + (3, ))
+            activation_image[:, :, 0] = activation_thresh
+            activation_image[:, :, 1] = activation_thresh
+            activation_image[:, :, 2] = activation_thresh
+
+            activation_image = activation_image.astype('uint8')
+            write_video_pipe.stdin.write(activation_image.tostring())
+
+            print 'frame ', frame_number, ' done'
+        except Exception:
+            print 'stop'
+            continue_condition = False
+
+
+    read_video_pipe.stdout.flush()
+    read_video_pipe.stdout.close()
+    read_video_pipe.wait()
+
+    del read_video_pipe
+
+    write_video_pipe.stdin.close()
+    write_video_pipe.wait()
+
+    del write_video_pipe
+
 def write_activation_video(adress_video_input='../pendule.mp4', adress_video_output='../threshold.mp4'):
     # Get neural network
     model = VGG_16('data/vgg16_weights.h5')
@@ -175,8 +262,10 @@ def write_activation_video(adress_video_input='../pendule.mp4', adress_video_out
         # redimensionnement de la frame pour qu' elle ait la bonne taille pour le réseau 224x 224
         shape = frame.shape
         frame = cv2.resize(frame, (224, 224))
+        print 'frame shape ', frame.shape
         im = frame.transpose((2, 0, 1))
         im = np.expand_dims(im, axis=0)
+        print 'im shape ', im.shape
 
         # feed the image into VGG
         model.predict(im)
@@ -235,7 +324,8 @@ def determine_pendulum_centers_from_activation_video(activation_video_url='../..
     centers = np.array(centers)
     np.savetxt('data/centers2.txt', centers)
 
-write_activation_video()
+#write_activation_video()
+write_activation_video_2()
 #determine_pendulum_centers_from_activation_video()
 centers = np.loadtxt('data/centers.txt')
 centers[:, 1] *= 852.0 / 480
@@ -256,4 +346,4 @@ plt.plot(angles)
 plt.title('pendulum angles')
 plt.show()
 
-np.savetxt('angle_sequence.txt', angles)
+np.savetxt('data/angle_sequence.txt', angles)
