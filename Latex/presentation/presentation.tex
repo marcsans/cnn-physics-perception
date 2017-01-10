@@ -81,7 +81,6 @@ COMPLETER AVEC L'EXPLICATION DES ACTIVATIONS
 \frametitle{Activation examples}
 
 \begin{figure}
-\captionsetup{labelformat=empty}
 \minipage{0.32\textwidth}
   \includegraphics[width=\linewidth]{activation1.png}
 \endminipage\hfill
@@ -91,6 +90,7 @@ COMPLETER AVEC L'EXPLICATION DES ACTIVATIONS
 \minipage{0.32\textwidth}%
   \includegraphics[width=\linewidth]{activation3.png}
 \endminipage\hfill
+  \caption{Activations at layer 15}
 \end{figure}
 
 \end{frame}
@@ -132,13 +132,12 @@ The line will not exactly intersect $\rightarrow$ solve least square problem:
 \begin{frame}
   \frametitle{Pendulum angles}
   \begin{figure}
-    \includegraphics[height=5cm]{pendulum_angles.png}
+    \includegraphics[height=4cm]{pendulum_angles.png}
   \end{figure}
   Estimation of the length with the period equal to $N / FPS = 50 / 31$.
   \begin{align*}
-    T &= \frac{N}{FPS} = 2 \pi \sqrt{\frac{l}{g}}\\
-    l &= g \left( \frac{N}{2 \pi FPS} \right)^2\\
-    l  &= 0.64m \\
+    T = \frac{N}{FPS} = 2 \pi \sqrt{\frac{l}{g}} &\implies l = g \left( \frac{N}{2 \pi FPS} \right)^2\\
+    l  = 0.64m &\\
   \end{align*}
 \end{frame}
 
