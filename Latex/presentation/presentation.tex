@@ -79,13 +79,33 @@ COMPLETER AVEC L'EXPLICATION DES ACTIVATIONS
 
 \begin{frame}
 \frametitle{Activation examples}
-DONNER DES EXEMPLES D'ACTIVATION
+
+\begin{figure}
+\captionsetup{labelformat=empty}
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{activation1.png}
+\endminipage\hfill
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{activation2.png}
+\endminipage\hfill
+\minipage{0.32\textwidth}%
+  \includegraphics[width=\linewidth]{activation3.png}
+\endminipage\hfill
+\end{figure}
+
 \end{frame}
 
 \begin{frame}
 \frametitle{Pendulum position detection with activations}
 VIDEO DU PENDULE AVEC ACTIVATION
 METHODE DE TRESHOLDING + SELECTION PAQUET + BARYCENTRE
+\end{frame}
+
+\begin{frame}
+  \frametitle{Pendulum position}
+  \begin{figure}
+    \includegraphics[height=7cm]{pendulum_positions.png}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -101,6 +121,27 @@ The line will not exactly intersect $\rightarrow$ solve least square problem:
   x = \text{argmin }\sum_i distance(x, d_i)^2
 \]
 \end{frame}
+
+\begin{frame}
+  \frametitle{Pendulum center}
+  \begin{figure}
+    \includegraphics[height=7cm]{pendulum_positions_with_center.png}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Pendulum angles}
+  \begin{figure}
+    \includegraphics[height=5cm]{pendulum_angles.png}
+  \end{figure}
+  Estimation of the length with the period equal to $N / FPS = 50 / 31$.
+  \begin{align*}
+    T &= \frac{N}{FPS} = 2 \pi \sqrt{\frac{l}{g}}\\
+    l &= g \left( \frac{N}{2 \pi FPS} \right)^2\\
+    l  &= 0.64m \\
+  \end{align*}
+\end{frame}
+
 
 \section{From angle sequence to pendulum length}
 
@@ -153,6 +194,10 @@ $N$ angle observations $(\theta_0, \ldots, \theta_{N-1})$ noisy.
 
 \begin{frame}
 \frametitle{Results}
+  Result of the algorithm :
+  \begin{align*}
+    l  &= 0.62m \\
+  \end{align*}
 \end{frame}
 
 
