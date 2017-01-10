@@ -1,5 +1,4 @@
 *.h5
-*.jpg
 *.pdf
 *.pyc
 *.aux
@@ -10,6 +9,8 @@ OpenCV/
 opencv.sh
 *.mp4
 *.avi
+*.toc
+*.nav
 
 *.swp
 *.swo
