@@ -1,6 +1,6 @@
 # coding: utf8
 """
-    TODO
+    various utility functions
 """
 
 import theano
@@ -15,7 +15,6 @@ def get_activations(model, layer_idx, X_batch):
     activations = get_activations_func([X_batch,0])
     return activations
 
-# extract hypercolumn
 def extract_hypercolumn(model, layer_indexes, instance):
     layers = [model.layers[li].output for li in layer_indexes]
     get_feature = theano.function([model.layers[0].input], layers,allow_input_downcast=False)
@@ -39,7 +38,7 @@ def get_video_number_of_frames(video):
     ]
 
     get_n_frame_pipe = subprocess.Popen(get_n_frame_command, stdout=subprocess.PIPE)
-    n_frames = min(int(get_n_frame_pipe.stdout.readline()), 30)
+    n_frames = int(get_n_frame_pipe.stdout.readline())
 
     get_n_frame_pipe.stdout.close()
     get_n_frame_pipe.wait()

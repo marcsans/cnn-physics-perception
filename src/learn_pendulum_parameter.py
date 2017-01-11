@@ -1,3 +1,7 @@
+# coding: utf8
+"""
+    function used to learn the pendulum parameters from the angle sequence
+"""
 from numpy import sin, cos, abs
 import numpy as np
 import matplotlib.pyplot as plt
@@ -81,7 +85,6 @@ def learn_length_from_sequence(angle_sequence, step=1):
 
         if (monotony_condition and diff_condition):
             length = learn_length_from_three_angle(th_0, th_1, th_2, step=step)
-            print length
             lengths.append(length)
 
     plt.figure(1)

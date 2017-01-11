@@ -1,6 +1,6 @@
 # coding: utf8
 """
-    TODO
+    determine center and angles of pendulum from CNN activation images
 """
 # packages
 from matplotlib import pyplot as plt
@@ -151,41 +151,23 @@ def find_attach_point(radius):
 
     return attach_point
 
-def determine_pendulum_centers():
-    activations = np.load('data/activations.npy')
+def determine_pendulum_positions_from_activations(activations_file=None, neuron_index=None):
+    activations = np.load(activations_file)
 
     n_frames = activations.shape[0]
+    centers = np.zeros((n_frames, 2))
 
-    for layer in interseting_layers:
-        centers = np.zeros((n_frames, 2))
+    for f in range(n_frames):
+        frame = activations[f, neuron_index]
+        threshold = 0.5 * (np.max(frame) + np.min(frame))
+        centers[f] = find_center_ball(frame, threshold)
 
-        for f in range(n_frames):
-            frame = activations[f, layer]
-            threshold = 0.5 * (np.max(frame) + np.min(frame))
+    return centers
 
-            centers[f] = find_center_ball(frame, threshold)
+def determine_pendulum_angles_from_positions(positions):
+    radius = compute_radius(positions)
+    attach_point = find_attach_point(radius)
+    angles = np.zeros(len(positions))
+    angles[:] = np.arctan2(positions[:, 0] - attach_point[0], positions[:, 1] - attach_point[1])
 
-        np.savetxt('data/centers_layer_' + str(layer) + '.txt', centers)
-
-def plot_pendulum_positions_and_angles():
-    for layer in interseting_layers:
-        centers = np.loadtxt('data/centers_layer_' + str(layer) + '.txt')
-        radius = compute_radius(centers)
-        attach_point = find_attach_point(radius)
-
-        plt.figure(str(layer) + ' positions')
-        plt.axis('equal')
-        plt.scatter(centers[:, 1], -centers[:, 0], color='blue')
-        plt.scatter(attach_point[1], -attach_point[0], color='red')
-        plt.title('pendulum positions')
-        plt.figure(str(layer) + ' angles')
-        angles = np.zeros(len(centers))
-        angles[:] = np.arctan2(centers[:, 0] - attach_point[0], centers[:, 1] - attach_point[1])
-        plt.plot(angles)
-        plt.title('pendulum angles')
-
-    plt.show()
-
-#determine_pendulum_centers_from_activation_video()
-determine_pendulum_centers()
-plot_pendulum_positions_and_angles()
+    return angles

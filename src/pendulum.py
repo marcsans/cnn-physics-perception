@@ -1,3 +1,7 @@
+# coding: utf8
+"""
+    function that integrate simple/double pendulum motion
+"""
 from numpy import sin, cos
 import numpy as np
 import matplotlib.pyplot as plt
@@ -99,7 +103,7 @@ def integrate_double_pendulum(th1_0, th1_1, th2_0, th2_1, n_step=1):
     return (y, x1, y1, x2, y2)
 
 ### EXAMPLES ###
-def run_simple_pendulum_example(l=L1):
+def run_simple_pendulum_example_with_animation(l=L1):
     th_0 = -np.pi / 4
     th_1 = th_0
     n_step = 200

@@ -1,6 +1,6 @@
 # coding: utf8
 """
-    TODO
+    create a convolutionnal neural network with keras of arichitecture VGG_16
 """
 from keras.models import Sequential
 from keras.layers.core import Flatten, Dense, Dropout

@@ -18,8 +18,7 @@ from utils import get_activations, get_video_number_of_frames
 
 
 
-def write_activations_from_video(input_video='../pendule.mp4', input_video_shape=[852, 480], layer_index=15, activations_file='data/activations.npy'):
-    image_size = input_video_shape[0] * input_video_shape[1] * 3
+def write_activations_from_video(input_video='../pendule.mp4', layer_index=15, activations_file='data/activations.npy'):
 
     convolutionnal_neural_network = VGG_16()
     n_frames = get_video_number_of_frames(input_video)
@@ -46,23 +45,26 @@ def write_activations_from_video(input_video='../pendule.mp4', input_video_shape
     activations = np.array(activations)
     np.save(activations_file, activations)
 
-def write_activations_video(activations_file='data/activations.npy'):
+    print 'activation file ' + activations_file + ' written'
+
+def write_activation_video(activations_file='data/activations.npy', neuron_index=0, output_video='../activation_videos/activation_video.mp4', N_FPS=15, n_frames=None):
     activations = np.load(activations_file)
-    n_frame = activations.shape[0]
 
-    for layer in interseting_layers:
-        print 'writing video for layer ', layer
-        # Set up formatting for the movie files
-        FFMpegWriter = animation.writers['ffmpeg']
-        metadata = dict(title='Pendulum activation layer ' + str(layer), artist='Thiry, Sanselme')
-        writer = FFMpegWriter(fps=15, metadata=metadata)
+    if (n_frames is None):
+        n_frames = activations.shape[0]
+    else:
+        n_frames = min(n_frames, activations.shape[0])
 
-        output_video = '../activation_videos/' + str(layer) + 'threshold.mp4'
-        fig = plt.figure()
-        with writer.saving(fig, output_video, 100):
-            for f in range(n_frame):
-                print 'frame ', f
-                im = activations[f, layer]
-                plt.imshow(im)
-                writer.grab_frame()
+
+    FFMpegWriter = animation.writers['ffmpeg']
+    writer = FFMpegWriter(fps=N_FPS)
+
+    fig = plt.figure()
+
+    with writer.saving(fig, output_video, 100):
+        for f in range(n_frames):
+            print 'writing frame ', f
+            im = activations[f, neuron_index]
+            plt.imshow(im)
+            writer.grab_frame()
 
