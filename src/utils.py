@@ -6,9 +6,21 @@
 import theano
 import numpy as np
 import scipy as scp
+from matplotlib import pyplot as plt
 import subprocess
 
 from keras import backend as K
+def plot_first_frame_of_all_activations(activations_file):
+    activations = np.load(activations_file)
+
+    n_activations = activations.shape[1]
+
+    for i in range(n_activations):
+        activation = activations[0, i]
+        figure_name = 'activation ' + str(i)
+        plt.figure(figure_name)
+        plt.imshow(activation)
+        plt.show()
 
 def get_activations(model, layer_idx, X_batch):
     get_activations_func = K.function([model.layers[0].input, K.learning_phase()], [model.layers[layer_idx].output,])
