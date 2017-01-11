@@ -11,6 +11,8 @@ opencv.sh
 *.avi
 *.toc
 *.nav
+*.npy
+*.txt
 
 *.swp
 *.swo
