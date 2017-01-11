@@ -5,7 +5,9 @@
 # packages
 from matplotlib import pyplot as plt
 import numpy as np
+import random as rd
 from numpy.linalg import norm
+from fit_circle import fit_circle, count_inliers
 
 interseting_layers = [7, 124]
 #interseting_layers = [6, 7, 8, 9, 13, 19, 28, 122, 124, 133, 152, 233]
@@ -38,6 +40,8 @@ def find_biggest_clusters(m, threshold):
     clusters = np.zeros((w,h))
     num_clusters = 0
     biggest_cluster = []
+    second_cluster = []
+    card_second_cluster = 0
     card_biggest_cluster = 0
     highest_value = 0
     for i in range(w):
@@ -47,24 +51,36 @@ def find_biggest_clusters(m, threshold):
                 clusters[i,j]=num_clusters
                 list, card, i_max, j_max = propagate_cluster(clusters, m, i, j, w, h, threshold)
                 if m[i_max,j_max] > highest_value:
+                    card_second_cluster = card_biggest_cluster
                     card_biggest_cluster = card
+                    second_cluster = biggest_cluster
                     biggest_cluster = list
                     highest_value = m[i_max,j_max]
-    return biggest_cluster, card_biggest_cluster
+    return biggest_cluster, card_biggest_cluster, second_cluster, card_second_cluster
 
-def find_center_ball(m, threshold):
-    cluster, num_pixels = find_biggest_clusters(m, threshold)
-    cx = 0
-    cy = 0
-    while cluster != []:
-        (i,j) = cluster.pop()
-        cx += i
-        cy += j
-    surface_ratio = 1.0 / num_pixels
-    cx *= surface_ratio
-    cy *= surface_ratio
+def find_center_balls(m, threshold):
+    cluster1, num_pixels1, cluster2, num_pixels2 = find_biggest_clusters(m, threshold)
+    c1x = 0
+    c1y = 0
+    c2x = 0
+    c2y = 0
+    while cluster1 != []:
+        (i, j) = cluster1.pop()
+        c1x += i
+        c1y += j
+    surface_ratio = 1.0 / num_pixels1
+    c1x *= surface_ratio
+    c1y *= surface_ratio
+    while cluster2 != []:
+        (i, j) = cluster2.pop()
+        c2x += i
+        c2y += j
+    surface_ratio = 1.0 / num_pixels2
+    c2x *= surface_ratio
+    c2y *= surface_ratio
 
-    return np.array([cx, cy])
+    return np.array([c1x, c1y]), np.array([c2x,c2y])
+
 
 def compute_radius(centers):
     n_centers = len(centers)
@@ -160,11 +176,51 @@ def determine_pendulum_positions_from_activations(activations_file=None, neuron_
     for f in range(n_frames):
         frame = activations[f, neuron_index]
         threshold = 0.5 * (np.max(frame) + np.min(frame))
-        centers[f] = find_center_ball(frame, threshold)
+        centers[f], _ = find_center_balls(frame, threshold)
 
     return centers
 
+def ransac_circle(centers):
+    n_frames = centers.shape[0]
+    nb_iterations = 1000
+    nb_points_to_fit = 6
+    tolerance = 4
+
+    max_inliers = 0
+    best_inliers = []
+    for iter in range(nb_iterations):
+        indices = rd.shuffle(range(n_frames))[:nb_points_to_fit]
+        rand_points = np.zeros((nb_points_to_fit,2))
+        for p in range(nb_points_to_fit):
+            pendulum_id = (rd.random()>0.5)
+            rand_points[p,0] = centers[indices[p],pendulum_id*2]
+            rand_points[p,1] = centers[indices[p],pendulum_id*2+1]
+        center, radius = fit_circle(rand_points)
+        inliers, nb_inliers = count_inliers(center, radius, centers, tolerance)
+        if (nb_inliers > max_inliers):
+            max_inliers = nb_inliers
+            best_inliers = inliers
+    center, radius = fit_circle(best_inliers)
+
+    return center, radius
+
+# def separate_balls(centers):
+#     n_frames = centers.shape[0]
+#     center, radius = ransac_circle(centers)
+#     ball1 = np.zeros((n_frames, 2))
+#     ball2 = np.zeros((n_frames, 2))
+#     for f in range(n_frames):
+#         to be continued
+
 def determine_pendulum_angles_from_positions(positions):
+    radius = compute_radius(positions)
+    attach_point = find_attach_point(radius)
+    angles = np.zeros(len(positions))
+    angles[:] = np.arctan2(positions[:, 0] - attach_point[0], positions[:, 1] - attach_point[1])
+
+    return angles
+
+def determine_double_pendulum_angles_from_positions(positions):
     radius = compute_radius(positions)
     attach_point = find_attach_point(radius)
     angles = np.zeros(len(positions))
