@@ -17,7 +17,7 @@ def plot_first_frame_of_all_activations(activations_file):
 
     for i in range(n_activations):
         activation = activations[0, i]
-        figure_name = 'activation ' + str(i)
+        figure_name = activations_file + ' activation ' + str(i)
         plt.figure(figure_name)
         plt.imshow(activation)
         plt.show()
