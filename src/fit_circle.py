@@ -14,7 +14,7 @@ def cost_to_minimize(center, radius, points):
 
     return cost
 
-def grad_cost(center, radius, points)
+def grad_cost(center, radius, points):
     eps = 0.001
     cost_x = cost_to_minimize(center+np.array([eps,0.]),radius,points)
     cost_y = cost_to_minimize(center+np.array([0.,eps]),radius,points)

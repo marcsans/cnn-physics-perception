@@ -13,6 +13,13 @@ def compute_F(th_0, th_1, th_2, l, n_dt=1):
     theta_l = pendulum.perform_one_step_integration_for_simple_pendulum(th_0, th_1, l=l, n_dt=1)
     return (theta_l - th_2)**2
 
+def compute_total_cost(thetas,l,n_dt=1):
+    cost = 0
+    for p in range(len(thetas) - 2):
+        theta_l = pendulum.perform_one_step_integration_for_simple_pendulum(thetas[p], thetas[p+1], l=l, n_dt=1)
+        cost += (theta_l - thetas[p+2])**2
+    return cost/(len(thetas) - 2)
+
 def plot_F(th_0, th_1, th_2, l):
     n_points = 1000
     l_values = np.linspace(l-1, l+1 , n_points)
@@ -64,6 +71,47 @@ def learn_length_from_three_angle(th_0, th_1, th_2, l_init=1.0, step=1):
 
     return l
 
+def learn_length_from_n_angles(thetas, l_init=1.0, step=1):
+    """
+        gradient descent with backtrack line search to minimise F(l)
+    """
+    # gradient descent parameters
+    n_iteration_max = 1000
+    diff = 10**(-4)
+    epsilon = 10**(-6) # step to compute numerical gradient
+
+    # initialize length
+    l = l_init
+    iter = 0
+
+    continue_condition = True
+    while continue_condition:
+        delta = 1 # gradient descent step
+        iter += 1
+
+        # compute numerical derivative
+        l_eps = l + epsilon
+        theta_l = np.zeros(len(thetas)-2)
+        theta_l_eps = np.zeros(len(thetas)-2)
+        for p in range(len(thetas)-2):
+            theta_l_eps[p] = pendulum.perform_one_step_integration_for_simple_pendulum(thetas[p], thetas[p+1], l=l_eps, n_dt=step)
+            theta_l[p] = pendulum.perform_one_step_integration_for_simple_pendulum(thetas[p], thetas[p+1], l=l, n_dt=step)
+        d_theta_l = (theta_l_eps - theta_l) / epsilon
+
+        # compute gradient
+        gradient = 2 * np.sum(d_theta_l * (theta_l - thetas[2:]))/(len(thetas) - 2)
+
+        # update l
+        Fl = compute_total_cost(thetas,l)
+
+        while (compute_total_cost(thetas, l - delta * gradient) > Fl or (l - delta * gradient<0)):
+            delta = 0.5 * delta
+
+        l = l - delta * gradient
+        continue_condition = (iter < n_iteration_max and abs(gradient) > diff)
+
+    return l
+
 def learn_length_from_sequence(angle_sequence, step=1):
     lengths = []
     l = 0
@@ -92,3 +140,18 @@ def learn_length_from_sequence(angle_sequence, step=1):
     plt.show()
 
     return (sum(lengths) / N, lengths)
+
+def learn_length_from_sequence_v2(angle_sequence, step=1):
+    length = 1.
+    lengths = []
+    N = len(angle_sequence)
+
+    for i  in range(3, N):
+        length = learn_length_from_n_angles(angle_sequence[:i], length, step=step)
+        lengths.append(length)
+    plt.figure(3)
+    plt.plot(range(len(lengths)),lengths)
+    plt.show()
+
+    print length
+    return length

@@ -68,14 +68,14 @@ def find_center_balls(m, threshold):
         (i, j) = cluster1.pop()
         c1x += i
         c1y += j
-    surface_ratio = 1.0 / num_pixels1
+    surface_ratio = 1.0 / max(1,num_pixels1)
     c1x *= surface_ratio
     c1y *= surface_ratio
     while cluster2 != []:
         (i, j) = cluster2.pop()
         c2x += i
         c2y += j
-    surface_ratio = 1.0 / num_pixels2
+    surface_ratio = 1.0 / max(1,num_pixels2)
     c2x *= surface_ratio
     c2y *= surface_ratio
 
