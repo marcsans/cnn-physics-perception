@@ -42,7 +42,19 @@ def integrate_simple_pendulum(th_0, th_1, n_step, l=L1, g=G):
 
 def perform_one_step_integration_for_simple_pendulum(th_0, th_1, l=L1, g=G, n_dt=1):
     DT = n_dt * dt
-    return th_1 + DT * ((th_1 - th_0) / DT - DT * (g / l) * sin(th_0))
+    return (th_1 + th_0) / 2 + DT * ((th_1 - th_0) / DT - DT * (g / l) * sin((th_1 + th_0) / 2 - np.pi/2))
+
+def perform_n_steps_integration_for_simple_pendulum(th_0, th_1, l=L1, g=G, nb_steps=1, n_dt=1):
+    DT = n_dt * dt
+    coef_frot = 0.05
+    thetas_expected = np.zeros(nb_steps+1)
+    speed_expected = np.zeros(nb_steps+1)
+    thetas_expected[0] = (th_0 + th_1)/2
+    speed_expected[0] = (th_1 - th_0) / DT
+    for step in range(nb_steps):
+        speed_expected[step+1] = speed_expected[step] - DT * ((g / l) * sin(thetas_expected[step]-np.pi/2) + coef_frot * speed_expected[step] * np.abs(speed_expected[step]))
+        thetas_expected[step+1] = thetas_expected[step] + DT * speed_expected[step+1]
+    return thetas_expected
 
 ### DOUBLE PENDULUM
 def double_pendulum_derivatives(state, t, m1, m2, l1, l2, g):
