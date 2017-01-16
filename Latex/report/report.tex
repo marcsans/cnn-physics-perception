@@ -40,7 +40,31 @@ We will illustrate these examples with a pendulum, from which we will learn the 
 
 \section{Determine kinematic informations using CNN activations}
 
+\begin{figure}[H]
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{activation1.png}
+\endminipage\hfill
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{activation2.png}
+\endminipage\hfill
+\minipage{0.32\textwidth}%
+  \includegraphics[width=\linewidth]{activation3.png}
+\endminipage\hfill
+  \caption{Activations at layer 1}
+\end{figure}
+
+\begin{figure}[H]
+  \captionsetup{labelformat=empty}
+  \includegraphics[height=3.5cm]{find_center.png}
+  \caption{Find the intersection of lines $d_i$}
+\end{figure}
+
+\begin{figure}[H]
+  \includegraphics[height=4cm]{pendulum_angles.png}
+\end{figure}
+
 \section{Learn physical properties}
+
 We assume that we have a physical system whose state $y$ (ex: position, velocity...) is governed by an ordinary differential equation depending on the physical parameter $P$ (mass, length...):
 \begin{align*}
   \frac{\partial y}{\partial t} &= F(y, P)\\
@@ -60,17 +84,17 @@ The equation is :
     \left [ \begin{array}{c} \dot{\theta} \\ -\frac{g}{l}\sin(\theta) - k \dot{\theta} \end{array} \right ]
     \\
 \end{align*}
-The $dt$ integration is straightfoward, so we want to minimize over $k$ and $l$ the function $F$:
+Thus the function $F$ we want to minimize over $k$ and $l$ is :
 \begin{align*}
   F(l, k) &= \sum_{i=1}^{N-1}{\left( \dot{\theta}_{t+1} - \dot{\theta_t} + kdt\dot{\theta}_t + \frac{g}{l}\sin(\theta_t) \right)^2}\\
 \end{align*}
-At the minimum, the partial derivatives over $l$ and $k$ are zero, which gives:
+At the minimum, the partial derivatives over $l$ and $k$ are zero:
 \begin{align*}
-  \frac{\partial F}{\partial l} = 0 \implies
+  \frac{\partial F}{\partial l} &= 0 \implies
     \left( \sum_{t=1}^{N-1}{\sin(\theta_t)(\dot{\theta}_{t+1} - \dot{\theta}_{t}}) \right) +
     k \left( dt \sum_{t=1}^{N-1}{\sin(\theta_t)\dot{\theta}_{t}} \right) +
     \frac{1}{l} \left( gdt \sum_{t=1}^{N-1}{\sin(\theta_t)^2} \right) = 0\\
-  \frac{\partial F}{\partial k} = 0 \implies
+  \frac{\partial F}{\partial k} &= 0 \implies
     \left( \sum_{t=1}^{N-1}{\dot{\theta_t}(\dot{\theta}_{t+1} - \dot{\theta}_{t}}) \right) +
     k \left( dt \sum_{t=1}^{N-1}{\dot{\theta}_{t}^2} \right) +
     \frac{1}{l} \left( gdt \sum_{t=1}^{N-1}{\sin(\theta_t) \dot{\theta}_t} \right) = 0\\
