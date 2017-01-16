@@ -116,33 +116,15 @@ def learn_length_from_n_angles(thetas, l_init=1.0, step=1):
     return l
 
 def learn_length_from_sequence_v1(angle_sequence, step=1):
-    lengths = []
-    l = 0
-    N = len(angle_sequence) - 2
+    g = 9.81
+    dt = 1.0 / 31
 
-    average_diff = 0
-    for i  in range(0, N - step):
-        average_diff += abs(angle_sequence[i + step] - angle_sequence[i])
+    angle_velocities_mid = 1.0 / dt * (angle_sequence[1:] - angle_sequence[0:-1])
+    angle_sequence_mid = 0.5 * (angle_sequence[1:] + angle_sequence[0:-1])
 
-    average_diff *= 1.0 / (N - step)
+    l = g * dt * np.sum(np.sin(angle_sequence_mid[:-1])**2) / np.sum(np.sin(angle_sequence_mid[:-1] * (angle_velocities_mid[:-1] - angle_velocities_mid[1:])))
 
-    for i  in range(0, N - 2 * step):
-        th_0 = angle_sequence[i]
-        th_1 = angle_sequence[i + step]
-        th_2 = angle_sequence[i + 2 * step]
-
-        monotony_condition = ((th_2 > th_1 and th_1 > th_0) or (th_2 < th_1 and th_1 < th_0))
-        diff_condition = (abs(th_2 - th_1) > average_diff and abs(th_1 - th_0) > average_diff)
-
-        if (monotony_condition and diff_condition):
-            length = learn_length_from_three_angle(th_0, th_1, th_2, step=step)
-            lengths.append(length)
-
-    plt.figure(1)
-    plt.hist(lengths, bins=50)
-    plt.show()
-
-    return (sum(lengths) / N, lengths)
+    return l
 
 def learn_length_from_sequence(angle_sequence, step=1):
     length = 1.
@@ -154,8 +136,12 @@ def learn_length_from_sequence(angle_sequence, step=1):
         length = learn_length_from_n_angles(angle_sequence[:i], length, step=step)
         lengths.append(length)
         print str(i * 100 / N) + "%"
+
+    print length
+    print lengths
     plt.figure(3)
-    plt.plot(range(len(lengths)),lengths)
+    plt.plot(range(len(lengths)), lengths)
     plt.show()
 
-    return length, lengths
+    return (length, lengths)
+
