@@ -26,5 +26,5 @@ plt.title('pendulum angles')
 plt.show()
 
 
-l = learn_pendulum_parameter.learn_length_from_sequence_v1(pendulum_angles - 0.5 * np.pi)
-print 'pendulum length ', l
+(l, k) = learn_pendulum_parameter.learn_length_from_sequence_v1(pendulum_angles - 0.5 * np.pi)
+print 'pendulum length ', l, ' . friction coeff ', k

@@ -122,9 +122,18 @@ def learn_length_from_sequence_v1(angle_sequence, step=1):
     angle_velocities_mid = 1.0 / dt * (angle_sequence[1:] - angle_sequence[0:-1])
     angle_sequence_mid = 0.5 * (angle_sequence[1:] + angle_sequence[0:-1])
 
-    l = g * dt * np.sum(np.sin(angle_sequence_mid[:-1])**2) / np.sum(np.sin(angle_sequence_mid[:-1] * (angle_velocities_mid[:-1] - angle_velocities_mid[1:])))
+    A_l = np.sum(np.sin(angle_sequence_mid[:-1] * (angle_velocities_mid[1:] - angle_velocities_mid[:-1])))
+    B_l = dt * np.sum(np.sin(angle_sequence_mid[:-1]) * angle_velocities_mid[:-1])
+    C_l = g * dt * np.sum(np.sin(angle_sequence_mid[:-1])**2)
 
-    return l
+    A_k = np.sum(np.sin(angle_velocities_mid[:-1] * (angle_velocities_mid[1:] - angle_velocities_mid[:-1])))
+    B_k = dt * np.sum(angle_velocities_mid[:-1]**2)
+    C_k = g * dt * np.sum(np.sin(angle_sequence_mid[:-1]) * angle_velocities_mid[:-1])
+
+    k = (A_k * C_l - A_l * C_k) / (B_l * C_k - B_k * C_l)
+    l = (C_l * B_k - C_k * B_l) / (A_k * B_l - A_l * B_k)
+
+    return (l, k)
 
 def learn_length_from_sequence(angle_sequence, step=1):
     length = 1.
